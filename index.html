@@ -1,0 +1,508 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Sniper</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="The Sniper — مطوّر روبوت قناص الذهب Gold Sniper لمنصة MetaTrader 5، وخدمات برمجة روبوتات MQL5 لتداول الذهب XAUUSD.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Reem+Kufi:wght@500;700&family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a riflescope view. Dark gunmetal field, a single gold reticle hero, then tight sections read like a spec sheet. */
+:root{
+  --bg:#0E1012;          /* gunmetal */
+  --bg-2:#15181B;        /* raised panel */
+  --line:#2A2E31;        /* hairline */
+  --fg:#ECE6D8;          /* bone text */
+  --muted:#9C9688;       /* secondary text */
+  --gold:#D4A84B;        /* bullion */
+  --gold-dim:#8E7234;
+  --up:#6FBF8E;
+  --down:#E07A6A;
+  --f-display:"Reem Kufi","IBM Plex Sans Arabic",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans Arabic",system-ui,"Segoe UI",Tahoma,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+  --wrap:1120px;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{animation:none!important;transition:none!important}}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:16px;line-height:1.75;margin:0}
+a{color:var(--gold);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.wrap{max-width:var(--wrap);margin-inline:auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.mono{font-family:var(--f-mono);direction:ltr;unicode-bidi:isolate}
+h1,h2,h3{font-family:var(--f-display);line-height:1.25;text-wrap:balance;margin:0}
+h2{font-size:clamp(1.6rem,3.4vw,2.3rem)}
+h3{font-size:1.15rem}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);direction:ltr;unicode-bidi:isolate;text-align:right}
+.hero .wrap>*,.gold-grid>*,.contact>*,header.top .wrap>*{min-width:0}
+
+/* header */
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(8px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:12px}
+.brand{display:flex;align-items:center;gap:10px;color:var(--fg);font-family:var(--f-display);font-size:1.2rem;font-weight:700;direction:ltr}
+.brand:hover{text-decoration:none}
+.brand svg{width:28px;height:28px}
+nav ul{display:flex;gap:22px;list-style:none;margin:0;padding:0}
+nav a{color:var(--muted);font-size:.95rem}
+nav a:hover{color:var(--fg);text-decoration:none}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:4px;font-weight:600;font-family:var(--f-body);font-size:.95rem;border:1px solid var(--gold);cursor:pointer;transition:background .2s,color .2s}
+.btn-gold{background:var(--gold);color:#1A1406}
+.btn-gold:hover{background:#E2B95C;text-decoration:none}
+.btn-ghost{background:transparent;color:var(--gold)}
+.btn-ghost:hover{background:color-mix(in srgb,var(--gold) 12%,transparent);text-decoration:none}
+.hdr-actions{display:flex;align-items:center;gap:10px}
+.lang-btn{font:600 .85rem var(--f-mono);color:var(--fg);background:transparent;border:1px solid var(--line);border-radius:4px;padding:9px 12px;cursor:pointer;min-width:44px}
+.lang-btn:hover{border-color:var(--gold);color:var(--gold)}
+.lang-btn:lang(ar){font-family:var(--f-body);font-size:1rem;padding-block:6px}
+[dir="ltr"] .eyebrow,[dir="ltr"] .svc .code,[dir="ltr"] .gold-list .k,[dir="ltr"] .kpi .v,[dir="ltr"] th,[dir="ltr"] td,[dir="ltr"] td.num{text-align:left}
+[dir="ltr"] .brand{direction:ltr}
+@media (max-width:760px){nav ul{display:none}}
+@media (max-width:420px){header.top .btn{padding:9px 14px;font-size:.85rem}}
+
+/* hero */
+.hero{position:relative;overflow:hidden;border-bottom:1px solid var(--line)}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:40px;align-items:center;padding-block:72px 64px}
+.hero h1{font-size:clamp(2.2rem,5.4vw,3.8rem);font-weight:700}
+.hero h1 em{font-style:normal;color:var(--gold)}
+.hero .lead{color:var(--muted);font-size:1.1rem;max-width:34em;margin-top:18px}
+.hero .cta{display:flex;flex-wrap:wrap;gap:12px;margin-top:28px}
+.hero .specs{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:32px;color:var(--muted);font-size:.85rem}
+.hero .specs b{color:var(--fg);font-weight:600}
+.scope{position:relative;aspect-ratio:1;max-width:420px;width:100%;justify-self:center}
+.scope svg{width:100%;height:100%;display:block;direction:ltr}
+.scope .ring{fill:none;stroke:var(--line);stroke-width:1}
+.scope .tick{stroke:var(--gold-dim);stroke-width:1.5}
+.scope .cross{stroke:var(--gold);stroke-width:1.2}
+.scope .price{fill:none;stroke:var(--gold);stroke-width:2;stroke-linejoin:round}
+.scope .area{fill:url(#goldfade)}
+.scope .lbl{fill:var(--muted);font-family:var(--f-mono);font-size:11px}
+.scope .dot{fill:var(--gold)}
+.scope .pulse{fill:none;stroke:var(--gold);stroke-width:1.5;transform-origin:center;transform-box:fill-box;animation:pulse 2.4s ease-out infinite}
+@keyframes pulse{0%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(3.2)}}
+@media (max-width:860px){.hero .wrap{grid-template-columns:1fr;padding-block:48px}.scope{max-width:320px;order:-1}}
+
+/* sections */
+section.block{padding-block:80px;border-bottom:1px solid var(--line)}
+.head{display:flex;flex-direction:column;gap:10px;margin-bottom:40px;max-width:40em}
+.head p{color:var(--muted)}
+
+/* services */
+.services{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.svc{background:var(--bg);padding:28px 24px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.svc .code{font-family:var(--f-mono);font-size:.75rem;color:var(--gold-dim);direction:ltr;text-align:right}
+.svc p{color:var(--muted);font-size:.95rem}
+@media (max-width:900px){.services{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:560px){.services{grid-template-columns:1fr}}
+
+/* gold */
+.gold-grid{display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start}
+.gold-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.gold-list li{display:grid;grid-template-columns:120px 1fr;gap:16px;padding-block:16px;border-top:1px solid var(--line)}
+.gold-list li:last-child{border-bottom:1px solid var(--line)}
+.gold-list .k{font-family:var(--f-mono);font-size:.8rem;color:var(--gold);direction:ltr;text-align:right;padding-top:3px}
+.gold-list .v b{display:block;font-weight:600}
+.gold-list .v span{color:var(--muted);font-size:.93rem}
+pre.mql{margin:0;background:var(--bg-2);border:1px solid var(--line);border-radius:6px;padding:20px;overflow-x:auto;font-family:var(--f-mono);font-size:.82rem;line-height:1.7;direction:ltr;text-align:left;color:var(--fg)}
+pre.mql .c{color:var(--muted)}
+pre.mql .k{color:var(--gold)}
+pre.mql .n{color:var(--up)}
+.mql-cap{margin-top:10px;color:var(--muted);font-size:.85rem}
+@media (max-width:860px){.gold-grid{grid-template-columns:1fr}}
+@media (max-width:420px){.gold-list li{grid-template-columns:1fr;gap:4px}.gold-list .k{text-align:right}}
+
+/* performance */
+.sample-flag{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;border:1px dashed var(--gold-dim);color:var(--gold);font-size:.82rem;padding:4px 12px;border-radius:999px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);margin-bottom:28px}
+.kpi{background:var(--bg);padding:20px}
+.kpi .l{color:var(--muted);font-size:.85rem}
+.kpi .v{font-family:var(--f-mono);font-size:1.6rem;font-weight:600;direction:ltr;text-align:right;font-variant-numeric:tabular-nums}
+@media (max-width:720px){.kpis{grid-template-columns:repeat(2,1fr)}}
+.perf{display:grid;grid-template-columns:1.4fr 1fr;gap:28px}
+.panel{background:var(--bg-2);border:1px solid var(--line);border-radius:6px;padding:20px;min-width:0}
+.panel h3{font-size:1rem;margin-bottom:12px}
+.chart svg{width:100%;height:auto;display:block;direction:ltr}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .axis{fill:var(--muted);font-family:var(--f-mono);font-size:10px}
+.chart .eq{fill:none;stroke:var(--gold);stroke-width:2;stroke-linejoin:round}
+.chart .eqa{fill:url(#eqfade)}
+.chart .end{fill:var(--gold)}
+.chart .endl{fill:var(--fg);font-family:var(--f-mono);font-size:11px;font-weight:600}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:.9rem}
+th,td{padding:8px 6px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th{color:var(--muted);font-weight:500;font-size:.8rem}
+td.num{font-family:var(--f-mono);direction:ltr;text-align:left;font-variant-numeric:tabular-nums}
+.pos{color:var(--up)} .neg{color:var(--down)}
+@media (max-width:900px){.perf{grid-template-columns:1fr}}
+.chart-note{color:var(--muted);font-size:.8rem;margin-top:8px}
+.exits{display:flex;flex-direction:column;gap:7px}
+.ex{display:grid;grid-template-columns:110px 1fr 34px;gap:10px;align-items:center;font-size:.85rem}
+.ex .bar{height:8px;background:var(--line);border-radius:4px;overflow:hidden}
+.ex .bar i{display:block;height:100%;background:var(--gold-dim)}
+.ex .n{font-family:var(--f-mono);text-align:left;direction:ltr;color:var(--muted)}
+.verified{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;margin-top:24px;padding:20px;background:var(--bg-2);border:1px solid var(--gold-dim);border-radius:6px}
+.verified p{color:var(--muted);font-size:.9rem;margin-top:6px;max-width:46em}
+.verified img{display:block;max-width:100%;margin-top:14px;border-radius:4px}
+@media (max-width:640px){.verified{grid-template-columns:1fr}}
+.honest{margin-top:24px;padding:14px 16px;border:1px dashed var(--gold-dim);border-radius:6px;color:var(--muted);font-size:.9rem;max-width:60em}
+
+/* posts */
+.posts{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:48px}
+.post{display:flex;flex-direction:column;gap:10px;padding-top:18px;border-top:2px solid var(--gold-dim);min-width:0}
+.post .meta{display:flex;gap:12px;font-size:.8rem;color:var(--muted)}
+.post .tag{color:var(--gold)}
+.post p{color:var(--muted);font-size:.93rem}
+@media (max-width:860px){.posts{grid-template-columns:1fr}}
+
+/* process */
+.steps{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;counter-reset:s;list-style:none;margin:0;padding:0}
+.steps li{counter-increment:s;display:flex;flex-direction:column;gap:8px}
+.steps li::before{content:counter(s,decimal-leading-zero);font-family:var(--f-mono);color:var(--gold);font-size:.85rem}
+.steps p{color:var(--muted);font-size:.93rem}
+@media (max-width:860px){.steps{grid-template-columns:repeat(2,1fr)}}
+@media (max-width:480px){.steps{grid-template-columns:1fr}}
+
+/* contact */
+.contact{display:grid;grid-template-columns:1fr 1.1fr;gap:40px}
+.channels{list-style:none;margin:24px 0 0;padding:0;display:flex;flex-direction:column;gap:14px}
+.channels li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--line);padding-bottom:12px;flex-wrap:wrap}
+.channels span{color:var(--muted)}
+form{display:grid;gap:14px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+label{display:flex;flex-direction:column;gap:6px;font-size:.88rem;color:var(--muted)}
+input,select,textarea{font:inherit;color:var(--fg);background:var(--bg-2);border:1px solid var(--line);border-radius:4px;padding:10px 12px;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--gold);outline:none}
+textarea{min-height:120px;resize:vertical}
+.form-note{font-size:.88rem;color:var(--up);min-height:1.5em}
+@media (max-width:860px){.contact{grid-template-columns:1fr}}
+@media (max-width:480px){.row2{grid-template-columns:1fr}}
+
+/* footer */
+.risk{background:var(--bg-2);border-bottom:1px solid var(--line)}
+.risk .wrap{padding-block:28px;font-size:.85rem;color:var(--muted)}
+.risk b{color:var(--fg)}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-block:24px;font-size:.85rem;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="site" dir="rtl" lang="ar">
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top" aria-label="The Sniper">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="16" r="12" fill="none" stroke="#D4A84B" stroke-width="2"/><circle cx="16" cy="16" r="2.5" fill="#D4A84B"/><path d="M16 1v8M16 23v8M1 16h8M23 16h8" stroke="#D4A84B" stroke-width="2"/></svg>
+      The Sniper
+    </a>
+    <nav aria-label="القائمة الرئيسية" data-i18n-attr="aria-label:t81">
+      <ul>
+        <li><a href="#services" data-i18n="t1">الخدمات</a></li>
+        <li><a href="#gold" data-i18n="t2">قناص الذهب</a></li>
+        <li><a href="#performance" data-i18n="t3">الأداء</a></li>
+        <li><a href="#process" data-i18n="t4">آلية العمل</a></li>
+      </ul>
+    </nav>
+    <div class="hdr-actions">
+      <button type="button" class="lang-btn" id="lang-btn" aria-label="Switch to English" lang="en">EN</button>
+      <a class="btn btn-gold" href="#contact" data-i18n="t5">اطلب روبوتك</a>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <div class="eyebrow">Gold Sniper · MT5 · XAUUSD</div>
+      <h1 style="margin-top:14px" data-i18n="t6"><em>قناص الذهب</em>: روبوت تداول للذهب بنتائج حقيقية معلنة</h1>
+      <p class="lead" data-i18n="t7">Gold Sniper روبوتنا الخاص للذهب على ميتاتريدر 5، مكتوب بلغة MQL5. ننشر نتائجه الحقيقية كما هي وموثقة على Myfxbook، ونبرمج أيضاً روبوتات حسب استراتيجيتك.</p>
+      <div class="cta">
+        <a class="btn btn-gold" href="#performance" data-i18n="t8">شاهد النتائج</a>
+        <a class="btn btn-ghost" href="#contact" data-i18n="t9">اطلب روبوتاً خاصاً</a>
+      </div>
+      <div class="specs">
+        <div data-i18n="t10"><b>MT5</b> بلغة MQL5</div>
+        <div data-i18n="t11"><b>XAUUSD</b> مخصص للذهب</div>
+        <div data-i18n="t12"><b>Myfxbook</b> نتائج موثقة</div>
+      </div>
+    </div>
+    <div class="scope" aria-hidden="true">
+      <svg viewBox="0 0 400 400">
+        <defs>
+          <linearGradient id="goldfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D4A84B" stop-opacity=".28"/><stop offset="1" stop-color="#D4A84B" stop-opacity="0"/></linearGradient>
+          <clipPath id="lens"><circle cx="200" cy="200" r="176"/></clipPath>
+        </defs>
+        <circle class="ring" cx="200" cy="200" r="190"/>
+        <circle class="ring" cx="200" cy="200" r="176" stroke="#3A3F43"/>
+        <g clip-path="url(#lens)">
+          <path class="area" d="M24 290 L60 270 L90 282 L120 240 L150 252 L180 214 L200 200 L230 222 L260 186 L290 196 L320 150 L350 162 L376 128 L376 400 L24 400 Z"/>
+          <path class="price" d="M24 290 L60 270 L90 282 L120 240 L150 252 L180 214 L200 200 L230 222 L260 186 L290 196 L320 150 L350 162 L376 128"/>
+        </g>
+        <g id="ticks"></g>
+        <line class="cross" x1="10" y1="200" x2="170" y2="200"/><line class="cross" x1="230" y1="200" x2="390" y2="200"/>
+        <line class="cross" x1="200" y1="10" x2="200" y2="170"/><line class="cross" x1="200" y1="230" x2="200" y2="390"/>
+        <circle class="pulse" cx="200" cy="200" r="6"/>
+        <circle class="dot" cx="200" cy="200" r="4"/>
+        <text class="lbl" x="212" y="192">XAUUSD</text>
+        <text class="lbl" x="212" y="218">ENTRY</text>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="services">
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">Services</div>
+      <h2 data-i18n="t13">خدمات تطوير روبوتات التداول</h2>
+      <p data-i18n="t14">من فكرة استراتيجيتك المكتوبة على ورقة إلى روبوت يعمل على ميتاتريدر 5، مع تسليم الكود المصدري والتوثيق.</p>
+    </div>
+    <div class="services">
+      <article class="svc"><div class="code">OnTick()</div><h3 data-i18n="t15">برمجة روبوت حسب الطلب</h3><p data-i18n="t16">نحوّل قواعد استراتيجيتك إلى مستشار خبير بلغة MQL5 يدخل ويخرج ويدير الصفقات تلقائياً.</p></article>
+      <article class="svc"><div class="code">Strategy Tester</div><h3 data-i18n="t17">الاختبار الرجعي والتحسين</h3><p data-i18n="t18">اختبار على بيانات تيك حقيقية، تحسين المدخلات، واختبار Walk-Forward لتجنب الإفراط في الملاءمة.</p></article>
+      <article class="svc"><div class="code">MQL4 → MQL5</div><h3 data-i18n="t19">تحويل وتطوير روبوتات قائمة</h3><p data-i18n="t20">نقل روبوتات ومؤشرات MT4 إلى MT5، وإصلاح الأخطاء وإضافة ميزات جديدة لكود موجود.</p></article>
+      <article class="svc"><div class="code">iCustom()</div><h3 data-i18n="t21">مؤشرات مخصصة</h3><p data-i18n="t22">مؤشرات وتنبيهات خاصة بك تظهر على الشارت وترسل إشعارات إلى الهاتف أو تيليجرام.</p></article>
+      <article class="svc"><div class="code">Risk %</div><h3 data-i18n="t23">أنظمة إدارة المخاطر</h3><p data-i18n="t24">حساب حجم اللوت حسب نسبة المخاطرة، وقف متحرك، تعادل، وحد أقصى للخسارة اليومية.</p></article>
+      <article class="svc"><div class="code">VPS · 24/5</div><h3 data-i18n="t25">التركيب والدعم</h3><p data-i18n="t26">تركيب الروبوت على خادم VPS، ضبط الإعدادات مع وسيطك، ودعم فني بعد التسليم.</p></article>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="gold">
+  <div class="wrap">
+    <div class="head" style="margin-bottom:24px">
+      <div class="eyebrow">Gold Sniper</div>
+      <h2 data-i18n="t27">عن قناص الذهب</h2>
+      <p data-i18n="t28">تفاصيل الاستراتيجية والإعدادات خاصة. ما ننشره هو النتائج والمبادئ التي نعمل بها.</p>
+    </div>
+    <ul class="gold-list">
+      <li><div class="k">MQL5</div><div class="v"><b data-i18n="t29">مبني بالكامل بلغة MQL5</b><span data-i18n="t30">يعمل داخل ميتاتريدر 5 وحده، بدون أي خدمة خارجية.</span></div></li>
+      <li><div class="k">RISK</div><div class="v"><b data-i18n="t31">إدارة مخاطر في كل صفقة</b><span data-i18n="t32">لكل صفقة وقف خسارة محدد، مع حدود تحمي الحساب من الخسائر الكبيرة.</span></div></li>
+      <li><div class="k">TESTING</div><div class="v"><b data-i18n="t33">لا تعديل بدون اختبار</b><span data-i18n="t34">أي تطوير جديد يُختبر على بيانات لم يرها الروبوت قبل أن يدخل التداول.</span></div></li>
+      <li><div class="k">TRANSPARENCY</div><div class="v"><b data-i18n="t35">شفافية في النتائج</b><span data-i18n="t36">النتائج تُحسب من كل الصفقات، الرابحة والخاسرة، وموثقة على Myfxbook.</span></div></li>
+    </ul>
+  </div>
+</section>
+
+<section class="block" id="performance">
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">Performance &amp; Analysis</div>
+      <h2 data-i18n="t46">الأداء والتحليلات</h2>
+      <p id="acct-line">نتائج الروبوت من سجل صفقاته كما هي، مع تحديثات الإصدارات والاختبارات.</p>
+      <span class="sample-flag" id="stage-flag">حساب تجريبي</span>
+    </div>
+
+    <div class="kpis" id="kpis"></div>
+
+    <div class="perf">
+      <div class="panel chart">
+        <h3 data-i18n="t47">منحنى النتيجة التراكمية بوحدة R</h3>
+        <div id="equity"></div>
+        <p class="chart-note" data-i18n="t48">R = الربح أو الخسارة مقسوماً على مخاطرة الصفقة. كل نقطة صفقة مغلقة.</p>
+      </div>
+      <div class="panel">
+        <h3 data-i18n="t49">النتائج اليومية</h3>
+        <div class="tbl"><table id="days"><thead data-i18n="t50"><tr><th>اليوم</th><th>الصفقات</th><th>الرابحة</th><th>R</th><th>الربح</th></tr></thead><tbody></tbody></table></div>
+      </div>
+    </div>
+
+    <div class="verified">
+      <div>
+        <h3 data-i18n="t52">النتائج الموثقة على Myfxbook</h3>
+        <p data-i18n="t53">نفس الحساب مربوط بـ Myfxbook، الذي يقرأ الصفقات والرصيد من الوسيط Fusion Markets مباشرة ويحدّثها تلقائياً، ولا يمكننا تعديل أي رقم فيه.</p>
+        <img src="https://widget.myfxbook.com/widget/widget.png?accountOid=12258811&amp;type=6" alt="ملخص حساب The Sniper على Myfxbook" data-i18n-attr="alt:t82" width="300" loading="lazy" onerror="this.remove()">
+      </div>
+      <a class="btn btn-gold" href="https://www.myfxbook.com/members/The_sniper/sniper/12258811" target="_blank" rel="noopener" data-i18n="t54">افتح الحساب على Myfxbook</a>
+    </div>
+
+    <p class="honest" id="honest"></p>
+
+    <div class="posts" id="posts"></div>
+  </div>
+</section>
+
+<section class="block" id="process">
+  <div class="wrap">
+    <div class="head">
+      <div class="eyebrow">Process</div>
+      <h2 data-i18n="t4">آلية العمل</h2>
+    </div>
+    <ol class="steps">
+      <li><h3 data-i18n="t55">تحديد الاستراتيجية</h3><p data-i18n="t56">جلسة لفهم قواعدك: شروط الدخول والخروج، الإطار الزمني، ونسبة المخاطرة.</p></li>
+      <li><h3 data-i18n="t57">البرمجة</h3><p data-i18n="t58">كتابة الروبوت بلغة MQL5 مع إعدادات قابلة للتعديل من داخل المنصة.</p></li>
+      <li><h3 data-i18n="t59">الاختبار</h3><p data-i18n="t60">اختبار رجعي على سنوات من بيانات الذهب وتقرير مفصل بالنتائج قبل التسليم.</p></li>
+      <li><h3 data-i18n="t61">التسليم والدعم</h3><p data-i18n="t62">تسليم الكود والتوثيق، المساعدة في التركيب، وتعديلات بعد التسليم.</p></li>
+    </ol>
+  </div>
+</section>
+
+<section class="block" id="contact">
+  <div class="wrap contact">
+    <div>
+      <div class="head" style="margin-bottom:0">
+        <div class="eyebrow">Contact</div>
+        <h2 data-i18n="t63">لنبنِ روبوتك القادم</h2>
+        <p data-i18n="t64">أرسل فكرة استراتيجيتك وسأعود إليك بتقدير للمدة والتكلفة.</p>
+      </div>
+      <ul class="channels">
+        <li><span data-i18n="t65">تيليجرام</span><b class="mono">@TheSniperEA</b></li>
+        <li><span data-i18n="t66">واتساب</span><b class="mono">+000 000 000 000</b></li>
+        <li><span data-i18n="t67">البريد</span><b class="mono">hello@thesniper.example</b></li>
+        <li><span>MQL5</span><b class="mono">mql5.com/users/thesniper</b></li>
+      </ul>
+    </div>
+    <form id="contact-form" novalidate>
+      <div class="row2">
+        <label for="f-name"><span data-i18n="t76">الاسم</span><input id="f-name" name="name" required autocomplete="name"></label>
+        <label for="f-handle"><span data-i18n="t78">تيليجرام أو واتساب</span><input id="f-handle" name="handle" required></label>
+      </div>
+      <label for="f-type"><span data-i18n="t77">نوع الخدمة</span>
+        <select id="f-type" name="type">
+          <option data-i18n="t71">برمجة روبوت حسب الطلب</option>
+          <option data-i18n="t72">اختبار وتحسين روبوت</option>
+          <option data-i18n="t73">تحويل من MT4 إلى MT5</option>
+          <option data-i18n="t74">مؤشر مخصص</option>
+          <option data-i18n="t75">أخرى</option>
+        </select>
+      </label>
+      <label for="f-msg"><span data-i18n="t79">صف استراتيجيتك باختصار</span><textarea id="f-msg" name="msg" placeholder="مثال: دخول شراء على الذهب عند تقاطع المتوسطات على H1 مع وقف خسارة بحجم 1.5 ATR..." data-i18n-attr="placeholder:t80"></textarea></label>
+      <button class="btn btn-gold" type="submit" data-i18n="t68">أرسل الطلب</button>
+      <p class="form-note" id="form-note" role="status"></p>
+    </form>
+  </div>
+</section>
+
+</main>
+
+<aside class="risk" aria-label="تحذير المخاطر" data-i18n-attr="aria-label:t83">
+  <div class="wrap"><p data-i18n="t69"><b>تحذير المخاطر:</b> تداول الذهب والعقود مقابل الفروقات بالرافعة المالية ينطوي على مخاطر عالية وقد يؤدي إلى خسارة كامل رأس المال. الأداء السابق ونتائج الاختبار الرجعي لا تضمن نتائج مستقبلية. الروبوتات أدوات برمجية لتنفيذ استراتيجية محددة، ولا يُعد أي محتوى في هذا الموقع نصيحة استثمارية.</p></div>
+</aside>
+
+<footer>
+  <div class="wrap">
+    <span data-i18n="t70">© <span id="yr">2026</span> The Sniper. جميع الحقوق محفوظة.</span>
+    <span class="mono">MQL5 · MetaTrader 5</span>
+  </div>
+</footer>
+
+</div>
+
+<script src="assets/data.js"></script>
+<script src="assets/posts.js"></script>
+<script src="assets/i18n.js"></script>
+<script>
+(function(){
+  var D = window.SNIPER_DATA || {days:[],account:{}};
+  var I = window.SNIPER_I18N || {en:{},ui:{ar:{},en:{}},values:{}};
+  var root = document.getElementById("site");
+  var lang = "ar";
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+  function U(k,vars){var s=(I.ui[lang]||{})[k]||(I.ui.ar||{})[k]||"";if(vars)Object.keys(vars).forEach(function(v){s=s.split("{"+v+"}").join(vars[v]);});return s;}
+  function V(s){return lang==="en"&&I.values[s]?I.values[s]:s;}
+  function fmtR(v){return (v>0?"+":"")+v.toFixed(2)+"R";}
+
+  /* reticle ticks (static) */
+  var t="", g=document.getElementById("ticks");
+  for(var i=0;i<72;i++){var a=i*5*Math.PI/180,o=190,q=(i%6===0)?176:184;
+    t+='<line class="tick" x1="'+(200+o*Math.cos(a)).toFixed(1)+'" y1="'+(200+o*Math.sin(a)).toFixed(1)+'" x2="'+(200+q*Math.cos(a)).toFixed(1)+'" y2="'+(200+q*Math.sin(a)).toFixed(1)+'"/>';}
+  g.innerHTML=t;
+
+  /* static text swap: Arabic lives in the markup, English in i18n.js */
+  function swapStatic(){
+    root.querySelectorAll("[data-i18n]").forEach(function(el){
+      if(el.dataset.ar===undefined) el.dataset.ar=el.innerHTML;
+      var en=I.en[el.dataset.i18n];
+      el.innerHTML=(lang==="en"&&en!==undefined)?en:el.dataset.ar;
+    });
+    root.querySelectorAll("[data-i18n-attr]").forEach(function(el){
+      var p=el.dataset.i18nAttr.split(":"), attr=p[0], key=p[1];
+      if(el.dataset.arAttr===undefined) el.dataset.arAttr=el.getAttribute(attr)||"";
+      el.setAttribute(attr,(lang==="en"&&I.en[key]!==undefined)?I.en[key]:el.dataset.arAttr);
+    });
+  }
+
+  function renderData(){
+    var stage=V(D.stage||"");
+    var flag=document.getElementById("stage-flag");
+    flag.textContent=stage.charAt(0).toUpperCase()===stage.charAt(0)?stage:(stage.charAt(0).toUpperCase()+stage.slice(1));
+    flag.hidden=!D.stage;
+    if(D.account){
+      document.getElementById("acct-line").textContent=(D.account.name||"")+" · "+(D.account.symbol||"")+(D.updated?(" · "+U("updated")+" "+D.updated):"");
+    }
+    var days=D.days||[], N=0, W=0, sumR=0;
+    days.forEach(function(x){N+=x.trades;W+=x.wins;sumR+=x.r;});
+    var rs=(D.tradesR&&D.tradesR.length)?D.tradesR:days.map(function(x){return x.r;});
+    var curve=[0],c=0,pk=0,dd=0;
+    rs.forEach(function(v){c+=v;curve.push(c);if(c>pk)pk=c;if(c-pk<dd)dd=c-pk;});
+    var kpis=[[U("kTrades"),N.toLocaleString("en-US")],[U("kWin"),N?Math.round(100*W/N)+"%":"-"],[U("kAvg"),N?fmtR(sumR/N):"-"],[U("kDD"),dd.toFixed(2)+"R"]];
+    document.getElementById("kpis").innerHTML=kpis.map(function(k){return '<div class="kpi"><div class="l">'+k[0]+'</div><div class="v">'+k[1]+'</div></div>';}).join("");
+    document.querySelector("#days tbody").innerHTML=days.slice().reverse().map(function(x){
+      return '<tr><td class="num">'+esc(x.d)+'</td><td class="num">'+x.trades+'</td><td class="num">'+x.wins+'</td><td class="num '+(x.r>=0?"pos":"neg")+'">'+fmtR(x.r)+'</td><td class="num '+(x.pnl>=0?"pos":"neg")+'">'+(x.pnl>=0?"+":"-")+"$"+Math.abs(x.pnl).toFixed(2)+'</td></tr>';
+    }).join("");
+    var need=D.minTrades||100;
+    document.getElementById("honest").textContent = N<need ? U("early",{stage:V(D.stage||""),n:N,need:need}) : U("full");
+
+    var Wd=560,H=260,pl=48,pr=16,pt=16,pb=30;
+    var mn=Math.min.apply(null,curve),mx=Math.max.apply(null,curve);
+    var span=(mx-mn)||1, step=span>8?2:(span>4?1:0.5);
+    var lo=Math.floor(mn/step)*step,hi=Math.ceil(mx/step)*step;
+    function X(i){return pl+i*(Wd-pl-pr)/Math.max(1,curve.length-1);}
+    function Y(v){return pt+(hi-v)*(H-pt-pb)/((hi-lo)||1);}
+    var s='<svg viewBox="0 0 '+Wd+' '+H+'" role="img" aria-label="'+U("chartLabel")+'"><defs><linearGradient id="eqfade" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D4A84B" stop-opacity=".25"/><stop offset="1" stop-color="#D4A84B" stop-opacity="0"/></linearGradient></defs>';
+    for(var v=lo;v<=hi+1e-9;v+=step){s+='<line class="grid" x1="'+pl+'" x2="'+(Wd-pr)+'" y1="'+Y(v)+'" y2="'+Y(v)+'"'+(Math.abs(v)<1e-9?' style="stroke:var(--muted)"':'')+'/><text class="axis" x="'+(pl-8)+'" y="'+(Y(v)+3)+'" text-anchor="end">'+(v>0?"+":"")+v+'R</text>';}
+    var n=curve.length-1, ticks=[0,Math.round(n/4),Math.round(n/2),Math.round(3*n/4),n];
+    ticks.forEach(function(i){s+='<text class="axis" x="'+X(i)+'" y="'+(H-8)+'" text-anchor="middle">'+(i===0?U("start"):"#"+i)+'</text>';});
+    var d=curve.map(function(v,i){return (i?"L":"M")+X(i).toFixed(1)+" "+Y(v).toFixed(1);}).join(" ");
+    s+='<path class="eqa" d="'+d+' L'+X(n)+' '+Y(lo)+' L'+X(0)+' '+Y(lo)+' Z"/><path class="eq" d="'+d+'"/>';
+    var exx=X(n),eyy=Y(c);
+    s+='<circle class="end" cx="'+exx+'" cy="'+eyy+'" r="4"/><text class="endl" x="'+(exx-8)+'" y="'+(eyy-10)+'" text-anchor="end">'+fmtR(c)+'</text></svg>';
+    document.getElementById("equity").innerHTML=s;
+
+    document.getElementById("posts").innerHTML=(window.SNIPER_POSTS||[]).map(function(p){
+      var en=lang==="en";
+      var tag=en&&p.tag_en?p.tag_en:p.tag, title=en&&p.title_en?p.title_en:p.title, body=en&&p.body_en?p.body_en:p.body;
+      var pdir=(en&&p.title_en)||!en?"":' dir="rtl" lang="ar"';
+      return '<article class="post"'+pdir+'><div class="meta"><span class="tag">'+esc(tag)+'</span><span class="mono">'+esc(p.date)+'</span></div><h3>'+esc(title)+'</h3><p>'+esc(body)+'</p></article>';
+    }).join("");
+    document.getElementById("yr").textContent=new Date().getFullYear();
+  }
+
+  function setLang(l){
+    lang=(l==="en")?"en":"ar";
+    var dir=lang==="en"?"ltr":"rtl";
+    root.setAttribute("lang",lang); root.setAttribute("dir",dir);
+    document.documentElement.setAttribute("lang",lang); document.documentElement.setAttribute("dir",dir);
+    swapStatic(); renderData();
+    var b=document.getElementById("lang-btn");
+    b.textContent=U("btn"); b.setAttribute("aria-label",U("btnLabel")); b.setAttribute("lang",lang==="en"?"ar":"en");
+    document.getElementById("form-note").textContent="";
+    try{localStorage.setItem("sniper-lang",lang);}catch(e){}
+  }
+
+  var saved=null;
+  try{saved=localStorage.getItem("sniper-lang");}catch(e){}
+  var nav=(navigator.languages&&navigator.languages[0])||navigator.language||"ar";
+  setLang(saved||(/^ar\b/i.test(nav)?"ar":"en"));
+  document.getElementById("lang-btn").addEventListener("click",function(){setLang(lang==="en"?"ar":"en");});
+
+  /* contact form: no server on a static site, so point the visitor to Telegram */
+  document.getElementById("contact-form").addEventListener("submit",function(e){
+    e.preventDefault();
+    var f=e.target,note=document.getElementById("form-note");
+    if(!f.name.value.trim()||!f.handle.value.trim()){note.style.color="var(--down)";note.textContent=U("formErr");return;}
+    note.style.color="";
+    note.textContent=U("formOk",{name:f.name.value.trim()});
+    f.reset();
+  });
+})();
+</script>
+</body>
+</html>
