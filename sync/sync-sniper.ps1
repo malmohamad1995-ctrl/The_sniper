@@ -87,8 +87,10 @@ Write-Host "تم تحديث data.js: $($rows.Count) صفقة."
 if ($NoPush) { exit 0 }
 Push-Location $SiteRepo
 try {
+    git pull --rebase --autostash --quiet
     git add assets/data.js
     git commit -m "تحديث النتائج $now ($($rows.Count) صفقة)" | Out-Null
     git push --quiet
+    if ($LASTEXITCODE -ne 0) { Write-Host "فشل الرفع إلى GitHub."; exit 1 }
     Write-Host "تم الرفع إلى GitHub."
 } finally { Pop-Location }
