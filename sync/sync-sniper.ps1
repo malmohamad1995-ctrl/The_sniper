@@ -13,6 +13,7 @@ param(
     [string]$Stage    = "حساب تجريبي",
     [string]$Version  = "Gold Sniper V9.8.1",
     [int]$MinTrades   = 100,
+    [string]$RemoteUrl = "https://github.com/malmohamad1995-ctrl/the-sniper.git",
     [switch]$NoPush
 )
 
@@ -74,6 +75,7 @@ $($dayLines -join ",`n")
 
 # نبدأ دائماً من آخر نسخة على GitHub حتى لا تتعارض التعديلات
 if (-not $NoPush) {
+    git -C $SiteRepo remote set-url origin $RemoteUrl
     git -C $SiteRepo fetch --quiet origin main
     if ($LASTEXITCODE -ne 0) { Write-Host "تعذر الاتصال بـGitHub."; exit 1 }
     git -C $SiteRepo reset --hard --quiet origin/main
