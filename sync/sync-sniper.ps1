@@ -72,6 +72,13 @@ $($dayLines -join ",`n")
 };
 "@
 
+# نبدأ دائماً من آخر نسخة على GitHub حتى لا تتعارض التعديلات
+if (-not $NoPush) {
+    git -C $SiteRepo fetch --quiet origin main
+    if ($LASTEXITCODE -ne 0) { Write-Host "تعذر الاتصال بـGitHub."; exit 1 }
+    git -C $SiteRepo reset --hard --quiet origin/main
+}
+
 $out = Join-Path $SiteRepo "assets\data.js"
 $old = if (Test-Path $out) { Get-Content $out -Raw -Encoding UTF8 } else { "" }
 # المقارنة بدون سطر الوقت حتى لا نرفع تغييراً كل 5 دقائق بلا صفقات جديدة
@@ -87,7 +94,6 @@ Write-Host "تم تحديث data.js: $($rows.Count) صفقة."
 if ($NoPush) { exit 0 }
 Push-Location $SiteRepo
 try {
-    git pull --rebase --autostash --quiet
     git add assets/data.js
     git commit -m "تحديث النتائج $now ($($rows.Count) صفقة)" | Out-Null
     git push --quiet

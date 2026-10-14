@@ -3,7 +3,7 @@
 # أو من PowerShell:  powershell -ExecutionPolicy Bypass -File "$env:USERPROFILE\Desktop\install-sync.ps1"
 
 $ErrorActionPreference = "Stop"
-$Repo   = "https://github.com/malmohamad1995-ctrl/The_sniper.git"
+$Repo   = "https://github.com/malmohamad1995-ctrl/the-sniper.git"
 $Site   = "C:\TheSniper"
 $Task   = "TheSniper-Sync"
 
@@ -22,7 +22,7 @@ if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
 git --version
 
 Step "2) تنزيل الموقع إلى $Site"
-if (Test-Path "$Site\.git") { git -C $Site pull --quiet } else { git clone $Repo $Site }
+if (Test-Path "$Site\.git") { git -C $Site remote set-url origin $Repo } else { git clone $Repo $Site }
 git -C $Site config user.name  "The Sniper"
 git -C $Site config user.email "noreply@thesniper.invalid"
 
